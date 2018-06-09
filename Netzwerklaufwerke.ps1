@@ -12,13 +12,20 @@ function CheckINIFileExisting ($path) {
         return $true
     }
 }
-function checkeLaufwerk ($ShareEntry) {
-    $lokalesLaufwerk = $ShareEntry("LokalesLaufwerk")
-    $remotePfad = $ShareEntry("RemotePfad")
-    $shareName = $ShareEntry.Name
-    $secpasswd = ConvertTo-SecureString $ShareEntry("RemotePasswort") -AsPlainText -Force
-    $mycreds = New-Object System.Management.Automation.PSCredential ($ShareEntry("RemoteUser"), $secpasswd)
-    mountLaufwerk($lokalesLaufwerk,$remotePfad,$mycreds,$shareName)
+function checkeLaufwerk ([System.Collections.DictionaryEntry]$ShareEntry) {
+    $shareName = $ShareEntry.Key
+    foreach ( $entry in $ShareEntry.Value ) {
+        switch ($entry.key) {
+            "LokalesLaufwerk" { $lokalesLaufwerk = $entry.value }
+            "RemotePasswort" { $remotePassword = $entry.value }
+            "RemoteUser" { $remoteUser = $entry.value }
+            "RemotePfad" { $remotePfad = $entry.value }
+            Default { Write-Debug "Unbekannte Eigenschaft in Konfiguration"}
+        }
+    }
+    $secpasswd = ConvertTo-SecureString $remotePassword -AsPlainText -Force
+    $mycreds = New-Object System.Management.Automation.PSCredential ( $remoteUser, $secpasswd )
+    mountLaufwerk ($lokalesLaufwerk,$remotePfad,$mycreds,$shareName)
 }
 function mountLaufwerk ($lokalesLaufwerk, $remotePfad, $pscredentials, $shareName) {
     Write-Debug "Binde Laufwerk ein:"
