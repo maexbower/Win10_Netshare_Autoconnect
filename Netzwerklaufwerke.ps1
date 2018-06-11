@@ -16,7 +16,7 @@ function checkeLaufwerk ([System.Collections.DictionaryEntry]$ShareEntry) {
     $shareName = $ShareEntry.Key
     foreach ( $entry in $ShareEntry.Value ) {
         switch ($entry.key) {
-            "LokalesLaufwerk" { $lokalesLaufwerk = $entry.value }
+            "LokalesLaufwerk" { [String]$lokalesLaufwerk = $entry.value }
             "RemotePasswort" { $remotePassword = $entry.value }
             "RemoteUser" { $remoteUser = $entry.value }
             "RemotePfad" { $remotePfad = $entry.value }
@@ -27,7 +27,7 @@ function checkeLaufwerk ([System.Collections.DictionaryEntry]$ShareEntry) {
     $mycreds = New-Object System.Management.Automation.PSCredential ( $remoteUser, $secpasswd )
     mountLaufwerk ($lokalesLaufwerk,$remotePfad,$mycreds,$shareName)
 }
-function mountLaufwerk ($lokalesLaufwerk, $remotePfad, $pscredentials, $shareName) {
+function mountLaufwerk ($lokalesLaufwerk, $remotePfad, [SecureString] $pscredentials, $shareName) {
     Write-Debug "Binde Laufwerk ein:"
     Out-String $lokalesLaufwerk | Write-Debug
     Out-String $remotePfad | Write-Debug
