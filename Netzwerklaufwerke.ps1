@@ -1,14 +1,27 @@
 ﻿Add-Type –AssemblyName System.Windows.Forms
-$INI_File_Path = "${env:USERPROFILE}\netzwerklaufwerke.INI"
+Import-Module .\Get-IniContent.psm1
+$global:INI_File_Name = "netzwerklaufwerke.INI"
+$global:INI_File_Path = "${env:USERPROFILE}"
+$global:INI_Current_File = ""
 function CheckINIFileExisting ($path) {
-    if (-not (Test-Path -Path $INI_File_Path)) {
-        $retry = [System.Windows.Forms.MessageBox]::Show("Einstellungsdatei für das automatische verbinden der Laufwerke nicht gefunden. Stellen Sie sicher, dass die Datei ${INI_File_Path} exitiert.","Einstellungsdatei Fehlt",[System.Windows.Forms.MessageBoxButtons]::RetryCancel,[System.Windows.Forms.MessageBoxIcon]::Exclamation)  
+    if (${env:DEBUG} -ne ""){
+        Write-Debug "DEBUG Aktiv nutze INI in Ausführungsverzeichnis, falls vorhanden."
+        if (Test-Path -Path ".\${global:INI_File_Name}") {
+            Write-Debug "DEBUG Aktiv nutze INI .\${global:INI_File_Name}"
+            $global:INI_Current_File = ".\${global:INI_File_Name}"
+            return $true
+        }
+    }
+    if (-not (Test-Path -Path $path)) {
+        $retry = [System.Windows.Forms.MessageBox]::Show("Einstellungsdatei für das automatische verbinden der Laufwerke nicht gefunden. Stellen Sie sicher, dass die Datei ${global:INI_File_Path}\${global:INI_File_Name} exitiert.","Einstellungsdatei Fehlt",[System.Windows.Forms.MessageBoxButtons]::RetryCancel,[System.Windows.Forms.MessageBoxIcon]::Exclamation)  
         if($retry -eq "retry"){
-            CheckINIFileExisting $INI_File_Path
+            CheckINIFileExisting $path
         }else{
             return $false
         }
     }else{
+        Write-Debug "DEBUG Aktiv nutze INI ${path}"
+        $global:INI_Current_File = "${path}"
         return $true
     }
 }
@@ -36,10 +49,10 @@ function mountLaufwerk ($lokalesLaufwerk, $remotePfad, [SecureString] $pscredent
     New-PSDrive -Name $lokalesLaufwerk -Root $remotePfad -Persist -PSProvider "FileSystem" -Credential $pscredentials -Description $shareName
 }
 
-if (CheckINIFileExisting $INI_File_Path) {
-    Write-Debug -Message "Einstellungsdatei ${INI_File_Path} konnte gelesen werden"
+if (CheckINIFileExisting "${global:INI_File_Path}\${global:INI_File_Name}") {
+    Write-Debug -Message "Einstellungsdatei ${global:INI_Current_File} konnte gelesen werden"
    
-    $INI_Content = Get-IniContent $INI_File_Path
+    $INI_Content = Get-IniContent ${global:INI_Current_File}
     Write-Debug -Message "Alle eingelesenen Einstellungen:" 
     Out-String -InputObject $INI_Content | Write-Debug
     ForEach ( $Share in $INI_Content.getEnumerator() ) {
@@ -49,6 +62,5 @@ if (CheckINIFileExisting $INI_File_Path) {
     }
     
 }else{ 
-    Write-Error -Category ObjectNotFound -message "Einstellungsdatei ${INI_File_Path} konnte nicht gefunden werden."
+    Write-Error -Category ObjectNotFound -message "Einstellungsdatei ${global:INI_File_Path}\${global:INI_File_Name} konnte nicht gefunden werden."
 }
-
