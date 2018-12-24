@@ -25,6 +25,7 @@ function checkeLaufwerk ([System.Collections.DictionaryEntry]$ShareEntry) {
     }
     $secpasswd = ConvertTo-SecureString $remotePassword -AsPlainText -Force
     $mycreds = New-Object System.Management.Automation.PSCredential ( $remoteUser, $secpasswd )
+    unmountLaufwerk ($lokalesLaufwerk)
     mountLaufwerk ($lokalesLaufwerk,$remotePfad,$mycreds,$shareName)
 }
 function mountLaufwerk ($lokalesLaufwerk, $remotePfad, [SecureString] $pscredentials, $shareName) {
@@ -35,6 +36,11 @@ function mountLaufwerk ($lokalesLaufwerk, $remotePfad, [SecureString] $pscredent
     Out-String $shareName | Write-Debug
     New-PSDrive -Name $lokalesLaufwerk -Root $remotePfad -Persist -PSProvider "FileSystem" -Credential $pscredentials -Description $shareName
 }
+function unmountLaufwerk ($lokalesLaufwerk) {
+    Write-Debug "Trenne Laufwerk:"
+    Out-String $lokalesLaufwerk | Write-Debug
+}
+
 
 if (CheckINIFileExisting $INI_File_Path) {
     Write-Debug -Message "Einstellungsdatei ${INI_File_Path} konnte gelesen werden"
