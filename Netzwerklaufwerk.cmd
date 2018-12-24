@@ -20,7 +20,6 @@ SET REMOTE_PASSWORT=abc123
 REM LAUFWERK ist der lokale Laufwerksbuchstabe, der verwendet werden soll.
 SET LAUFWERK=X
 
-
 REM ##################################################
 REM ##########Ab hier nichts mehr Ändern #############
 REM ##################################################
